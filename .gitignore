@@ -1,3 +1,6 @@
 #   Ignora arquivos de dados .csv e .json
 *.csv
 *.json
+
+#   Ignora arquivos .DS_Store em sistemas Apple.
+.DS_Store
