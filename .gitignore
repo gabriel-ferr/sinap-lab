@@ -1,0 +1,3 @@
+#   Ignora arquivos de dados .csv e .json
+*.csv
+*.json
