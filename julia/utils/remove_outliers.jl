@@ -42,6 +42,27 @@ function RemoveOutliers(data, time; blocksize = length(data), fs = 250.0, iqr_mu
         end
     end
 
+    #   Pega os elementos que sobraram e cria um bloco com eles.
+    if (size(data)[1] > blocksize * blocks)
+        rest_data = data[1 + (blocksize * blocks):size(data)[1]]
+        rest_time = time[1 + (blocksize * blocks):size(data)[1]]
+
+        #   Determina os quartis e o intervalo interquartil.
+        Q1 = quantile(rest_data, 0.25);
+        Q3 = quantile(rest_time, 0.75);
+        IQR = Q3 - Q1;
+
+        #   Verifica se os dados são ou não outliers.
+        for j = 1:size(vec_data)[1]
+            if ((vec_data[j] < (Q1 - (iqr_mult * IQR)) || (vec_data[j] > (Q3 + (iqr_mult * IQR)))))
+                continue
+            end
+
+            push!(res_data, Float32(rest_data[j]))
+            push!(res_time, rest_time[j])
+        end
+    end
+
     #   Estrutura uma matriz de retorno.
     result = Array{Float32, 2}(undef, size(res_data)[1], 2)
     
