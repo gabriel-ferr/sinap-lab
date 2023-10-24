@@ -2,7 +2,6 @@
 #   Script Julia
 #   Por Gabriel Ferreira.
 #
-#   - 23/10/2023
 #       Prepara o ambiente para ser utilizado pelos demais scripts
 #   do Julia.
 

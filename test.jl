@@ -17,6 +17,4 @@ fil_data = filt(digitalfilter(fil_highpass_alpha, fil_method), fil_data)
 
 spec = spectrogram(fil_data, 25; fs=250.0)
 
-plot(spec.freq[:], spec.power[:, 1], nfft)
-
-spec.freq
+plot(spec.freq[:], spec.power[:, 1])
