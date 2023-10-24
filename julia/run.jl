@@ -29,10 +29,10 @@ using BSON: @load;
 
 #   Filtros aplicados.
 #   - Filtro notch para remover ruídos da rede/de ambiente.
-fil_notch = Filters.iirnotch(65, 45; fs = 250.0)
+filt_notch = Filters.iirnotch(65, 45; fs = 250.0)
 
 #   - Método de aplicação do filtro.
-fil_method = Butterworth(4)
+filt_method = Butterworth(4)
 
 #   - Filtros passa-alta e passa-baixa para onda alfa.
 filt_lowpass_alpha = Lowpass(12; fs = 250.0)
@@ -54,5 +54,5 @@ for ch = 1:size(raw_data)[2]
     #   Pega o valor do canal.
     raw_channel = raw_data[:, ch]
 
-
+    
 end
