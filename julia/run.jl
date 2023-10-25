@@ -132,9 +132,9 @@ for ch = 1:size(raw_data)[2]
     CSV.write(ARGS[3] * "/spec_gamma_" * string(ch) * ".csv", psd_df_gamma);
 
     #   Salva a série temporal do canal para cada uma das ondas.
-    alpha_df = DataFrame(;t = filt_alpha[1], v = filt_alpha[2]);
-    beta_df = DataFrame(;t = filt_beta[1], v = filt_beta[2]);
-    gamma_df = DataFrame(;t = filt_gamma[1], v = filt_gamma[2]);
+    alpha_df = DataFrame(;t = filt_alpha[:, 1], v = filt_alpha[:, 2]);
+    beta_df = DataFrame(;t = filt_beta[:, 1], v = filt_beta[:, 2]);
+    gamma_df = DataFrame(;t = filt_gamma[:, 1], v = filt_gamma[:, 2]);
 
     CSV.write(ARGS[3] * "/time_" * string(ch) * "_alpha.csv", alpha_df);
     CSV.write(ARGS[3] * "/time_" * string(ch) * "_beta.csv", beta_df);
