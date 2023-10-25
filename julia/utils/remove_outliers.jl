@@ -53,8 +53,8 @@ function RemoveOutliers(data, time; blocksize = length(data), fs = 250.0, iqr_mu
         IQR = Q3 - Q1;
 
         #   Verifica se os dados são ou não outliers.
-        for j = 1:size(vec_data)[1]
-            if ((vec_data[j] < (Q1 - (iqr_mult * IQR)) || (vec_data[j] > (Q3 + (iqr_mult * IQR)))))
+        for j = 1:size(rest_data)[1]
+            if ((rest_data[j] < (Q1 - (iqr_mult * IQR)) || (rest_data[j] > (Q3 + (iqr_mult * IQR)))))
                 continue
             end
 

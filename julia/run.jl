@@ -22,16 +22,17 @@
 #   Referências utilizadas.
 using DSP;
 using Statistics;
-using Flux;
+#using Flux;
 using DataFrames;
 using CSV;
 using BSON: @load;
 
 #   Importa o modelo a ser usado para a rede neural.
-@load ARGS[1] model;
+#@load ARGS[1] model;
 
 #   Incluí os scripts auxiliares.
 include("utils/remove_outliers.jl");
+include("utils/get_data.jl");
 
 #   Filtros aplicados.
 #   - Filtro notch para remover ruídos da rede/de ambiente.
@@ -54,6 +55,9 @@ filt_highpass_gamma = Highpass(30; fs = 250.0);
 
 #   Lê o arquivo de dados.
 raw_data = CSV.read(ARGS[2], DataFrame);
+
+#   Vetor para registro dos canais.
+channels = []
 
 #   Processa inicialmente os dados por canal.
 for ch = 1:size(raw_data)[2]
@@ -128,13 +132,22 @@ for ch = 1:size(raw_data)[2]
     CSV.write(ARGS[3] * "/spec_gamma_" * string(ch) * ".csv", psd_df_gamma);
 
     #   Salva a série temporal do canal para cada uma das ondas.
-    alpha_df = DataFrame(;t = filt_alpha[1], v = filt_alpha[2])
-    beta_df = DataFrame(;t = filt_beta[1], v = filt_beta[2])
-    gamma_df = DataFrame(;t = filt_gamma[1], v = filt_gamma[2])
+    alpha_df = DataFrame(;t = filt_alpha[1], v = filt_alpha[2]);
+    beta_df = DataFrame(;t = filt_beta[1], v = filt_beta[2]);
+    gamma_df = DataFrame(;t = filt_gamma[1], v = filt_gamma[2]);
 
     CSV.write(ARGS[3] * "/time_" * string(ch) * "_alpha.csv", alpha_df);
     CSV.write(ARGS[3] * "/time_" * string(ch) * "_beta.csv", beta_df);
     CSV.write(ARGS[3] * "/time_" * string(ch) * "_gamma.csv", gamma_df);
 
-    #   
+    #   Aloca os dados no vetor de canais.
+    push!(channels, (filt_alpha[:, 2], filt_beta[:, 2], filt_gamma[:, 2]))
 end
+
+#   Carrega os dados a partir dos canais.
+#data = GetData(channels; blocksize = 200);
+
+#   Joga os dados no modelo.
+#model_result = model(data);
+
+#   
