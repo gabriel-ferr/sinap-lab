@@ -12,13 +12,13 @@ using  Statistics
 #   - fs: frequência de coleta dos dados.
 #   - iqr_mult: multiplicador para o intervalo interquartil usado para a definição
 #   dos outliers.
-function RemoveOutliers(data, time; blocksize = length(data), fs = 250.0, iqr_mult = 1.5)
+function RemoveOutliers(data, time; blocksize = length(data), iqr_mult = 1.5)
     #   Vetor onde os blocos são armazenados após removido os outliers.
     res_data = [];
     res_time = [];
 
     #   Calcula o número de blocos.
-    blocks = trunc(Int, size(data)[1]/fs);
+    blocks = trunc(Int, size(data)[1]/blocksize);
 
     #   Lista os blocos.
     for i = 1:blocks

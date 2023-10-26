@@ -101,7 +101,7 @@ for ch = 1:size(raw_data)[2]
     #   1 = 0.0 Hz
     #   2 = 10.0 Hz
     #   3 = 20.0 Hz
-    psd_alpha_result = spec_alpha.power[1, :] + spec_alpha.power[2, :] + spec_alpha.power[3, :]
+    psd_alpha_result = spec_alpha.power[1, :] + spec_alpha.power[2, :] + spec_alpha.power[3, :];
     psd_df_alpha = DataFrame(;t = spec_alpha.time, p = psd_alpha_result);
 
     #   Organiza o PSD para as ondas beta:
@@ -111,7 +111,7 @@ for ch = 1:size(raw_data)[2]
     #   2 = 10.0 Hz
     #   3 = 20.0 Hz
     #   4 = 30.0 Hz
-    psd_beta_result = spec_alpha.power[2, :] + spec_alpha.power[3, :] + spec_alpha.power[4, :]
+    psd_beta_result = spec_alpha.power[2, :] + spec_alpha.power[3, :] + spec_alpha.power[4, :];
     psd_df_beta = DataFrame(;t = spec_alpha.time, p = psd_beta_result);
 
     #   Organiza o PSD para as ondas gamma:
@@ -123,7 +123,7 @@ for ch = 1:size(raw_data)[2]
     #   6 = 50.0 Hz
     #   7 = 60.0 Hz
     #   8 = 70.0 Hz
-    psd_gamma_result = spec_alpha.power[4, :] + spec_alpha.power[5, :] + spec_alpha.power[6, :] + spec_alpha.power[7, :] + spec_alpha.power[8, :]
+    psd_gamma_result = spec_alpha.power[4, :] + spec_alpha.power[5, :] + spec_alpha.power[6, :] + spec_alpha.power[7, :] + spec_alpha.power[8, :];
     psd_df_gamma = DataFrame(;t = spec_alpha.time, p = psd_gamma_result);
 
     #   Salva os PSD na pasta indicada.
