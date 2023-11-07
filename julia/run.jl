@@ -22,13 +22,13 @@
 #   Referências utilizadas.
 using DSP;
 using Statistics;
-#using Flux;
+using Flux;
 using DataFrames;
 using CSV;
 using BSON: @load;
 
 #   Importa o modelo a ser usado para a rede neural.
-#@load ARGS[1] model;
+@load ARGS[1] model;
 
 #   Incluí os scripts auxiliares.
 include("utils/remove_outliers.jl");
@@ -69,6 +69,65 @@ for ch = 1:size(raw_data)[2]
     #   proximidades da frequência da rede elétrica.
     filt_data = filtfilt(filt_notch, raw_channel);
 
+    #   - Faz um espectrograma do canal.
+    spec = spectrogram(filt_data, 15; nfft=nextfastfft(600), fs=250.0);
+
+    #   - Médias do espectrograma.
+    freq_mean = []
+    alpha_power_mean = []
+    beta_power_mean = []
+    gamma_power_mean = []
+
+    #   - Abre o espectrograma.
+    for t = 1:size(spec.time)[1]
+        power_freqs = spec.power[:, t] ./1000000
+        freqs = spec.freq
+    
+        #   Calcula a frequência média.
+        #   É uma média ponderada!
+        f_mean_sum = []
+        for f = 1:size(power_freqs)[1]
+            push!(f_mean_sum, power_freqs[f] * freqs[f]);
+        end
+    
+        f_mean = sum(f_mean_sum) / sum(power_freqs)
+    
+        push!(freq_mean, f_mean);
+    
+        alpha = []
+        beta = []
+        gamma = []
+    
+        for i = 1:size(power_freqs)[1]
+            if (freqs[i] < 12.0)
+                push!(alpha, power_freqs[i])
+            elseif (freqs[i] < 30.0)
+                push!(beta, power_freqs[i])
+            elseif (freqs[i] < 70.0)
+                push!(gamma, power_freqs[i])
+            end
+        end
+    
+        push!(alpha_power_mean, sum(alpha)/size(alpha)[1])
+        push!(beta_power_mean, sum(beta)/size(beta)[1])
+        push!(gamma_power_mean, sum(gamma)/size(gamma)[1])
+    end
+
+    #   - Gera um heatmap do espectrograma.
+    #   Linhas fixas de frequência.
+    top_line = []
+    gamma_line = []
+    beta_line = []
+    alpha_line = []
+    for _ in spec.time
+        push!(top_line, 70)
+        push!(gamma_line, 30)
+        push!(beta_line, 12)
+        push!(alpha_line, 8)
+    end
+
+    graph_spec = heatmap(spec.time, spec.freq[1:170], spec.power[1:170, :] ./1000000, c = :curl)
+
     #   - Separa os espectros da onda.
     filt_alpha = filt(digitalfilter(filt_lowpass_alpha, filt_method), filt_data);
     filt_alpha = filt(digitalfilter(filt_highpass_alpha, filt_method), filt_alpha);
@@ -88,49 +147,6 @@ for ch = 1:size(raw_data)[2]
     filt_beta = RemoveOutliers(filt_beta, time; blocksize = 250)
     filt_gamma = RemoveOutliers(filt_gamma, time; blocksize = 250)
 
-    #   - Calcula os espectrogramas dos dados a fim de obter a intensidades.
-    #   Configura para processar a transformada de Fourier de 25 em 25 elementos.
-    spec_alpha = spectrogram(filt_alpha[:, 2], 25; fs=250.0);
-    spec_beta = spectrogram(filt_alpha[:, 2], 25; fs=250.0);
-    spec_gamma = spectrogram(filt_alpha[:, 2], 25; fs=250.0);
-
-    #   Organiza o PSD para as ondas alfa:
-    #   - Pega as intensidades para 0 Hz, 10 Hz e 20 Hz e soma os vetores.
-    #       A ideia é pegar as intensidade da faixa de 8-12Hz filtradas dentro
-    #   desse espectro.
-    #   1 = 0.0 Hz
-    #   2 = 10.0 Hz
-    #   3 = 20.0 Hz
-    psd_alpha_result = spec_alpha.power[1, :] + spec_alpha.power[2, :] + spec_alpha.power[3, :];
-    psd_df_alpha = DataFrame(;t = spec_alpha.time, p = psd_alpha_result);
-
-    #   Organiza o PSD para as ondas beta:
-    #   - Pega as intensidades para 10 Hz, 20 Hz e 30 Hz e soma os vetores.
-    #       A ideia é pegar as intensidade da faixa de 8-12Hz filtradas dentro
-    #   desse espectro.
-    #   2 = 10.0 Hz
-    #   3 = 20.0 Hz
-    #   4 = 30.0 Hz
-    psd_beta_result = spec_alpha.power[2, :] + spec_alpha.power[3, :] + spec_alpha.power[4, :];
-    psd_df_beta = DataFrame(;t = spec_alpha.time, p = psd_beta_result);
-
-    #   Organiza o PSD para as ondas gamma:
-    #   - Pega as intensidades para 30 Hz, 40 Hz, 50 Hz, 60 Hz e 70 Hz e soma os vetores.
-    #       A ideia é pegar as intensidade da faixa de 8-12Hz filtradas dentro
-    #   desse espectro.
-    #   4 = 30.0 Hz
-    #   5 = 40.0 Hz
-    #   6 = 50.0 Hz
-    #   7 = 60.0 Hz
-    #   8 = 70.0 Hz
-    psd_gamma_result = spec_alpha.power[4, :] + spec_alpha.power[5, :] + spec_alpha.power[6, :] + spec_alpha.power[7, :] + spec_alpha.power[8, :];
-    psd_df_gamma = DataFrame(;t = spec_alpha.time, p = psd_gamma_result);
-
-    #   Salva os PSD na pasta indicada.
-    CSV.write(ARGS[3] * "/spec_alpha_" * string(ch) * ".csv", psd_df_alpha);
-    CSV.write(ARGS[3] * "/spec_beta_" * string(ch) * ".csv", psd_df_beta);
-    CSV.write(ARGS[3] * "/spec_gamma_" * string(ch) * ".csv", psd_df_gamma);
-
     #   Salva a série temporal do canal para cada uma das ondas.
     alpha_df = DataFrame(;t = filt_alpha[:, 1], v = filt_alpha[:, 2]);
     beta_df = DataFrame(;t = filt_beta[:, 1], v = filt_beta[:, 2]);
@@ -145,9 +161,13 @@ for ch = 1:size(raw_data)[2]
 end
 
 #   Carrega os dados a partir dos canais.
-#data = GetData(channels; blocksize = 200);
+data = GetData(channels; blocksize = 200);
 
 #   Joga os dados no modelo.
-#model_result = model(data);
+model_result = model(data);
 
-#   
+#   Aloca o resultado do modelo em um DataFrame.
+model_df = DataFrame(;Repulsivo=model_result[1,:], Neutro=model_result[2,:], Fofo=model_result[3,:]);
+
+#   Salva o DataFrame.
+CSV.write(ARGS[3] * "/result.csv", model_df);

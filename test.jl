@@ -5,16 +5,15 @@ using CSV;
 using Plots;
 using Statistics;
 
-include("julia/utils/remove_outliers.jl")
+include("julia/utils/remove_outliers.jl");
 
-raw_data = CSV.read("raw/tarefa_1_4.csv", DataFrame);
-
+raw_data = CSV.read("raw/tarefa_1_4.csv", DataFrame)
 fil_notch = Filters.iirnotch(65, 45; fs = 250.0)
 #fil_lowpass_alpha = Lowpass(12; fs = 250.0)
 #fil_highpass_alpha = Highpass(8; fs = 250.0)
 #fil_method = Butterworth(4)
 
-fil_data = filtfilt(fil_notch, raw_data[:, 1])
+fil_data = filtfilt(fil_notch, raw_data[:, 7])
 #fil_data = filt(digitalfilter(fil_lowpass_alpha, fil_method), fil_data)
 #fil_data = filt(digitalfilter(fil_highpass_alpha, fil_method), fil_data)
 
@@ -24,6 +23,7 @@ freq_mean = []
 alpha_power_mean = []
 beta_power_mean = []
 gamma_power_mean = []
+
 for t = 1:size(spec.time)[1]
     power_freqs = spec.power[:, t] ./1000000
     freqs = spec.freq
@@ -60,11 +60,25 @@ end
 
 println(spec.power |> size)
 
-graph_1 = heatmap(spec.time, spec.freq[1:180], spec.power[1:180, :] ./1000000, c = :curl)
-plot!(spec.time, freq_mean)
-plot!(spec.time, alpha_power_mean)
-plot!(spec.time, beta_power_mean)
-plot!(spec.time, gamma_power_mean)
+graph_1 = heatmap(spec.time, spec.freq[1:170], spec.power[1:170, :] ./1000000, c = :bilbao)
+top_line = []
+gamma_line = []
+beta_line = []
+alpha_line = []
+for _ in spec.time
+    push!(top_line, 70)
+    push!(gamma_line, 30)
+    push!(beta_line, 12)
+    push!(alpha_line, 8)
+end
+plot!(spec.time, top_line; c = :buda10)
+plot!(spec.time, gamma_line; c = :cork)
+plot!(spec.time, beta_line; c = :cool)
+plot!(spec.time, alpha_line; c = :gist_rainbow)
+#plot!(spec.time, freq_mean)
+#plot!(spec.time, alpha_power_mean)
+#plot!(spec.time, beta_power_mean)
+#plot!(spec.time, gamma_power_mean)
 
 #   Normaliza as intensidades.
 alpha_power_mean = alpha_power_mean ./ std(alpha_power_mean)
@@ -81,5 +95,9 @@ plot!(spec.time, gamma_power_mean)
 
 
 graph_3 = plot(spec.time, freq_mean)
+
+println(alpha_power_mean |> size)
+println(beta_power_mean |> size)
+println(gamma_power_mean |> size)
 
 plot(graph_1, graph_2, graph_3, layout=(3,1), size=(1024,1024))
