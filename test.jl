@@ -13,7 +13,7 @@ fil_notch = Filters.iirnotch(65, 45; fs = 250.0)
 #fil_highpass_alpha = Highpass(8; fs = 250.0)
 #fil_method = Butterworth(4)
 
-fil_data = filtfilt(fil_notch, raw_data[:, 7])
+fil_data = filtfilt(fil_notch, raw_data[:, 3])
 #fil_data = filt(digitalfilter(fil_lowpass_alpha, fil_method), fil_data)
 #fil_data = filt(digitalfilter(fil_highpass_alpha, fil_method), fil_data)
 
@@ -60,7 +60,7 @@ end
 
 println(spec.power |> size)
 
-graph_1 = heatmap(spec.time, spec.freq[1:170], spec.power[1:170, :] ./1000000, c = :bilbao)
+graph_1 = heatmap(spec.time, spec.freq[20:170], spec.power[20:170, :] ./1000000, c = :Blues)
 top_line = []
 gamma_line = []
 beta_line = []

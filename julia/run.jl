@@ -26,6 +26,7 @@ using Flux;
 using DataFrames;
 using CSV;
 using BSON: @load;
+using Plots
 
 #   Importa o modelo a ser usado para a rede neural.
 @load ARGS[1] model;
@@ -113,6 +114,15 @@ for ch = 1:size(raw_data)[2]
         push!(gamma_power_mean, sum(gamma)/size(gamma)[1])
     end
 
+    #   Salva os dados do espectrograma.
+    alpha_spec = DataFrames(;t = spec.time, I = alpha_power_mean);
+    beta_spec = DataFrames(;t = spec.time, I = beta_power_mean);
+    gamma_spec = DataFrames(;t = spec.time, I = gamma_power_mean);
+
+    CSV.write(ARGS[3] * "/spec_" * string(ch) * "_alpha.csv", alpha_spec);
+    CSV.write(ARGS[3] * "/spec_" * string(ch) * "_beta.csv", beta_spec);
+    CSV.write(ARGS[3] * "/spec_" * string(ch) * "_gamma.csv", gamma_spec);
+
     #   - Gera um heatmap do espectrograma.
     #   Linhas fixas de frequência.
     top_line = []
@@ -126,7 +136,19 @@ for ch = 1:size(raw_data)[2]
         push!(alpha_line, 8)
     end
 
-    graph_spec = heatmap(spec.time, spec.freq[1:170], spec.power[1:170, :] ./1000000, c = :curl)
+    graph_spec = heatmap(spec.time, spec.freq[1:170], spec.power[1:170, :] ./1000000, c = :Blues)
+    plot!(spec.time, top_line; c = :buda10)
+    plot!(spec.time, gamma_line; c = :cork)
+    plot!(spec.time, beta_line; c = :cool)
+    plot!(spec.time, alpha_line; c = :gist_rainbow)
+
+    #   Normaliza as intensidades.
+    alpha_power_mean = alpha_power_mean ./ std(alpha_power_mean)
+    beta_power_mean = beta_power_mean ./ std(beta_power_mean)
+    gamma_power_mean = gamma_power_mean ./ std(gamma_power_mean)
+
+    #   Salva o espectrograma.
+    savefig(graph_spec, "result/spectrogram.png")
 
     #   - Separa os espectros da onda.
     filt_alpha = filt(digitalfilter(filt_lowpass_alpha, filt_method), filt_data);
